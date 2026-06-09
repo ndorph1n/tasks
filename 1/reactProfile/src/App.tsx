@@ -10,6 +10,8 @@ function App() {
 
   const debouncedInputValue = useDebounceValue(inputValue, 500);
 
+  const username = debouncedInputValue.trim();
+
   return (
     <>
       <input
@@ -17,14 +19,18 @@ function App() {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
       />
-      <Profile username={debouncedInputValue}>
-        {(user, { isLoading, error }) => {
-          if (isLoading) return <Loading />;
-          if (error) return <div role="alert">{error.message}</div>;
+      {username ? (
+        <Profile username={username}>
+          {(user, { isLoading, error }) => {
+            if (isLoading) return <Loading />;
+            if (error) return <div role="alert">{error.message}</div>;
 
-          return user ? <Badge info={user} /> : <div>User not found</div>;
-        }}
-      </Profile>
+            return user ? <Badge info={user} /> : <div>User not found</div>;
+          }}
+        </Profile>
+      ) : (
+        <div>User not found</div>
+      )}
     </>
   );
 }

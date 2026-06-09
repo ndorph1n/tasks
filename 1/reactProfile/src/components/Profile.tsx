@@ -3,7 +3,7 @@ import type { ProfileProps, User } from "../types/types";
 
 export default function Profile({ children, username }: ProfileProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const requestIdRef = useRef(0);
