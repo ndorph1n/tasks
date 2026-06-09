@@ -13,7 +13,7 @@ export default function useDebounceFunction<T extends (...args: any[]) => void>(
         clearTimeout(timerRef.current);
       }
     };
-  }, []);
+  }, [f, t]);
 
   return useCallback(
     (...args: Parameters<T>) => {

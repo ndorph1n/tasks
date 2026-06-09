@@ -1,4 +1,5 @@
 import { memo } from "react";
+import type { PaginationProps } from "../types/types";
 
 const Pagination = ({
   current,
@@ -6,7 +7,7 @@ const Pagination = ({
   onNextPageClick,
   onPrevPageClick,
   disable,
-}) => {
+}: PaginationProps) => {
   function handleNextPageClick() {
     onNextPageClick();
   }

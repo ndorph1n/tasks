@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { List } from "react-window";
+import type { Post, PostKey, SortConfig } from "./types/types";
+
 import Pagination from "./components/Pagination";
 import RowComponent from "./components/RowComponent";
 import Filter from "./components/FilterControls";
@@ -13,14 +15,14 @@ const VISIBLE_ROWS = 10;
 const ROW_HEIGHT = 80;
 
 function App() {
-  const [posts, setPosts] = useState([]);
-  const [sortConfig, setSortConfig] = useState({
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
     order: "asc",
   });
 
-  const [filterTitle, setFilterTitle] = useState("title");
-  const [filterValue, setFilterValue] = useState("");
+  const [filterTitle, setFilterTitle] = useState<PostKey>("title");
+  const [filterValue, setFilterValue] = useState<string>("");
 
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,12 +45,12 @@ function App() {
     fetchPosts();
   }, []);
 
-  const handleFilterTitleChange = (value) => {
+  const handleFilterTitleChange = (value: PostKey) => {
     setFilterTitle(value);
-    // setPage(1);
+    setPage(1);
   };
 
-  const handleFilterValueChange = (value) => {
+  const handleFilterValueChange = (value: string) => {
     setFilterValue(value);
     setPage(1);
   };
@@ -70,9 +72,11 @@ function App() {
   const sortedPosts = useMemo(() => {
     if (!sortConfig.key) return filteredPosts;
 
+    const sortKey = sortConfig.key;
+
     return [...filteredPosts].sort((a, b) => {
-      const aValue = a[sortConfig.key] ?? "";
-      const bValue = b[sortConfig.key] ?? "";
+      const aValue = a[sortKey] ?? "";
+      const bValue = b[sortKey] ?? "";
 
       const result = String(aValue).localeCompare(String(bValue), "en", {
         sensitivity: "base",
@@ -82,13 +86,17 @@ function App() {
     });
   }, [sortConfig, filteredPosts]);
 
-  const handleSort = (key) => {
+  const handleSort = (key: PostKey) => {
     setSortConfig((prev) => ({
       key,
       order: prev.key === key && prev.order === "asc" ? "desc" : "asc",
     }));
   };
-  const totalPageCount = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+
+  const totalPageCount = Math.max(
+    1,
+    Math.ceil(filteredPosts.length / POSTS_PER_PAGE),
+  );
 
   const { handleNextClick, handlePrevClick } = useDebouncePages({
     page,
@@ -140,7 +148,7 @@ function App() {
               rowHeight={ROW_HEIGHT}
               rowProps={{ posts: currentPosts }}
               style={{
-                height: (VISIBLE_ROWS / 2) * ROW_HEIGHT,
+                height: VISIBLE_ROWS * ROW_HEIGHT,
               }}
             />
           </div>
@@ -151,7 +159,7 @@ function App() {
         {posts.length !== 0 && (
           <Pagination
             current={page}
-            total={totalPageCount ? totalPageCount : 1}
+            total={totalPageCount}
             onNextPageClick={handleNextClick}
             onPrevPageClick={handlePrevClick}
             disable={{ left: page === 1, right: page === totalPageCount }}
