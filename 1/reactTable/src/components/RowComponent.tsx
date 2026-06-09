@@ -1,6 +1,6 @@
-import { memo } from "react";
+import type { RowCompProps } from "../types/types";
 
-export default memo(function RowComponent({ index, style, posts }) {
+export default function RowComponent({ index, style, posts }: RowCompProps) {
   const post = posts[index];
 
   if (!post) return null;
@@ -13,4 +13,4 @@ export default memo(function RowComponent({ index, style, posts }) {
       <div className="th">{post.content}</div>
     </div>
   );
-});
+}
