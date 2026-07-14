@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 export default function useDebounceFunction<T extends (...args: any[]) => void>(
   f: T,
   t: number,
-): (...args: Parameters<T>) => void {
+): [(...args: Parameters<T>) => void, () => void] {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callbackRef = useRef(f);
 
@@ -12,19 +12,24 @@ export default function useDebounceFunction<T extends (...args: any[]) => void>(
     callbackRef.current = f;
   }, [f]);
 
+  const cancel = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = null;
+  }, []);
+
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
+      cancel();
     };
-  }, [t]);
+  }, [cancel]);
 
-  return useCallback(
+  const debounced = useCallback(
     (...args: Parameters<T>) => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
       timerRef.current = setTimeout(() => {
         callbackRef.current(...args);
@@ -33,4 +38,6 @@ export default function useDebounceFunction<T extends (...args: any[]) => void>(
     },
     [t],
   );
+
+  return [debounced, cancel];
 }

@@ -4,7 +4,7 @@ export default function useDebounceValue<T>(v: T, t: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(v);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
       setDebouncedValue(v);
     }, t);
 

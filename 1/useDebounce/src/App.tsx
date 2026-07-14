@@ -1,7 +1,4 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "./assets/vite.svg";
-import heroImg from "./assets/hero.png";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import useDebounceValue from "./hooks/useDebounceValue";
 import useDebounceFunction from "./hooks/useDebounceFunction";
@@ -10,27 +7,62 @@ function App() {
   const [count, setCount] = useState(0);
   const [secondCount, setSecondCount] = useState(0);
 
-  const debouncedCount = useDebounceValue(count, 500);
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [isDebounceWaiting, setIsDebounceWaiting] = useState(false);
 
-  const handleCount = () => {
+  const delay = 500;
+
+  const debouncedCount = useDebounceValue(count, delay);
+
+  const handleCount = useCallback(() => {
     setSecondCount((prev) => prev + 1);
+    setIsDebounceWaiting(false);
+    setRemainingTime(0);
+  }, []);
+
+  const [debouncedFunc, cancelDebouncedFunc] = useDebounceFunction(
+    handleCount,
+    delay,
+  );
+
+  useEffect(() => {
+    if (!isDebounceWaiting || remainingTime <= 0) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setRemainingTime((prev) => {
+        const next = prev - 50;
+
+        if (next <= 0) {
+          clearInterval(interval);
+          return 0;
+        }
+
+        return next;
+      });
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [isDebounceWaiting, remainingTime]);
+
+  const handleDebouncedFunction = () => {
+    setRemainingTime(delay);
+    setIsDebounceWaiting(true);
+    debouncedFunc();
   };
 
-  const debouncedFunc = useDebounceFunction(handleCount, 500);
+  const handleCancelDebouncedFunction = () => {
+    setRemainingTime(0);
+    setIsDebounceWaiting(false);
+    cancelDebouncedFunc();
+  };
 
   return (
     <>
       <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <h1>Debounce Hooks</h1>
         </div>
         <button
           type="button"
@@ -40,9 +72,25 @@ function App() {
           Debounced Count: {debouncedCount}
         </button>
 
-        <button type="button" className="counter" onClick={debouncedFunc}>
-          Debounced Count Function: {secondCount}
-        </button>
+        <div className="debouncedFunc">
+          <p>Timeout: {remainingTime}</p>
+
+          <button
+            type="button"
+            className="counter"
+            onClick={handleDebouncedFunction}
+          >
+            Debounced Count Function: {secondCount}
+          </button>
+
+          <button
+            type="button"
+            className="counter"
+            onClick={handleCancelDebouncedFunction}
+          >
+            Cancel Debounced Function
+          </button>
+        </div>
       </section>
     </>
   );
