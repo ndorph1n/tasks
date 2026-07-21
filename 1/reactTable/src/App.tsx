@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
-import { List } from "react-window";
-import type { Post, PostKey, SortConfig } from "./types/types";
+import { List, useDynamicRowHeight } from "react-window";
+import type { Post, PostKey, SortConfig, ApiResponse } from "./types/types";
 
 import Pagination from "./components/Pagination";
 import RowComponent from "./components/RowComponent";
 import Filter from "./components/FilterControls";
 
-import useDebouncePages from "./hooks/useDebouncePages";
+import useThrottlePages from "./hooks/useThrottlePages";
 
-const TOTAL_POSTS = 500;
 const POSTS_PER_PAGE = 25;
 const VISIBLE_ROWS = 10;
-const ROW_HEIGHT = 80;
+const DEFAULT_ROW_HEIGHT = 80;
 
 function App() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -21,22 +20,40 @@ function App() {
     order: "asc",
   });
 
+  const [error, setError] = useState<string | null>(null);
+
   const [filterTitle, setFilterTitle] = useState<PostKey>("title");
   const [filterValue, setFilterValue] = useState<string>("");
 
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
+  const rowHeight = useDynamicRowHeight({
+    defaultRowHeight: DEFAULT_ROW_HEIGHT,
+  });
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        setError(null);
         const response = await fetch(
-          `https://fakerapi.it/api/v2/texts?_quantity=${TOTAL_POSTS}`,
+          `https://dummyjson.com/c/3122-d4f9-4e11-a62d`,
         );
-        const result = await response.json();
+        if (!response.ok) {
+          throw new Error("Could not fetch data");
+        }
 
-        setPosts(result.data);
+        const result = (await response.json()) as ApiResponse;
+
+        if (Array.isArray(result.data)) {
+          setPosts(result.data);
+        } else {
+          throw new Error("Invalid response format");
+        }
       } catch (err) {
+        let message = "Unknown error";
+        if (err instanceof Error) message = err.message;
+        setError(message);
         console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
@@ -87,6 +104,7 @@ function App() {
   }, [sortConfig, filteredPosts]);
 
   const handleSort = (key: PostKey) => {
+    setPage(1);
     setSortConfig((prev) => ({
       key,
       order: prev.key === key && prev.order === "asc" ? "desc" : "asc",
@@ -98,12 +116,10 @@ function App() {
     Math.ceil(filteredPosts.length / POSTS_PER_PAGE),
   );
 
-  const { handleNextClick, handlePrevClick } = useDebouncePages({
+  const { handleNextClick, handlePrevClick } = useThrottlePages({
     page,
     totalPageCount,
-    onPageChange: (newPage) => {
-      setPage(newPage);
-    },
+    onPageChange: setPage,
     delay: 500,
   });
 
@@ -145,16 +161,19 @@ function App() {
             <List
               rowComponent={RowComponent}
               rowCount={currentPosts.length}
-              rowHeight={ROW_HEIGHT}
+              rowHeight={rowHeight}
               rowProps={{ posts: currentPosts }}
+              overscanCount={2}
               style={{
-                height: VISIBLE_ROWS * ROW_HEIGHT,
+                height: VISIBLE_ROWS * DEFAULT_ROW_HEIGHT,
+                overflow: "auto",
               }}
             />
           </div>
         </div>
       )}
       {isLoading && <div>Loading...</div>}
+      {error && <div className="error">{error}</div>}
       <div className="controls">
         {posts.length !== 0 && (
           <Pagination
