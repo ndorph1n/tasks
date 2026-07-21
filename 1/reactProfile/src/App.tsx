@@ -1,4 +1,3 @@
-import "./App.css";
 import Profile from "./components/Profile";
 import Badge from "./components/Badge";
 import Loading from "./components/Loading";

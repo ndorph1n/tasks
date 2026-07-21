@@ -24,6 +24,8 @@ export interface User {
   };
 }
 
+export type ApiResponse = User[];
+
 export type ProfileProps = {
   username: string;
   children: (
