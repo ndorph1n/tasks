@@ -7,6 +7,10 @@ export type Post = {
   content: string;
 };
 
+export type ApiResponse = {
+  data: Post[];
+};
+
 export type PostKey = keyof Post;
 
 export type SortOrder = "asc" | "desc";
@@ -16,7 +20,7 @@ export type SortConfig = {
   order: SortOrder;
 };
 
-export type UseDebouncePagesProps = {
+export type UseThrottlePagesProps = {
   page: number;
   totalPageCount: number;
   onPageChange: (newPage: number) => void;
@@ -46,3 +50,5 @@ export type PaginationProps = {
     right: boolean;
   };
 };
+
+export type PageDirection = "next" | "prev";

@@ -12,6 +12,7 @@ export default function FilterControls({
         value={filterTitle}
         name="column"
         className="filter-item"
+        aria-label="filter column"
         onChange={(e) => onFilterTitleChange(e.target.value as PostKey)}
       >
         <option value="author">Author</option>
@@ -22,6 +23,7 @@ export default function FilterControls({
         type="text"
         className="filter-input"
         value={filterValue}
+        aria-label="filter value"
         onChange={(e) => onFilterValueChange(e.target.value)}
       />
     </div>
